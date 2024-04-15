@@ -1,0 +1,14 @@
+# ninja log v5
+2	109	7339528826883577	CMakeFiles/untitled.dir/main.c.obj	4025ce7f57d3013f
+110	219	7339528827959426	untitled.exe	62889b7cb91db0f1
+6	148	7331850278287235	CMakeFiles/untitled.dir/distance_calculator.c.obj	5b9e634761c00ec2
+1	85	7339522649178320	CMakeFiles/untitled.dir/explicit_data.c.obj	c91c7df79d1c310b
+8	61	7331850277417238	CMakeFiles/untitled.dir/node.c.obj	fc889fce243b36ad
+76	723	7339540366384333	build.ninja	17fbb9a650f60617
+61	1202	7339418092756356	CMakeFiles/untitled.dir/cvrp.c.obj	702d87444ac5be85
+2	1532	7344403781869851	CMakeFiles/untitled.dir/main.c.obj	4025ce7f57d3013f
+1532	2345	7344403789929212	untitled.exe	500d5c644637ea8e
+2	104	7344404350022237	CMakeFiles/untitled.dir/main.c.obj	4025ce7f57d3013f
+105	214	7344404351102632	untitled.exe	500d5c644637ea8e
+2	1368	7349107645157417	CMakeFiles/untitled.dir/distance_calculator.c.obj	5b9e634761c00ec2
+1369	2011	7349107651617612	untitled.exe	500d5c644637ea8e
