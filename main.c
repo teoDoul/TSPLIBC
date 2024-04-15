@@ -100,8 +100,10 @@ int main() {
                         fprintf(stderr, "Error reading the edge weight format.\n");
                         fclose(file);
                         return 1;
+                    }else if(fileType != 3){
+                        break;
                     }
-                }else if (strstr(buffer, "CAPACITY") != NULL) {
+                } else if (strstr(buffer, "CAPACITY") != NULL) {
                     if (sscanf(buffer, "CAPACITY : %d", &capacity) != 1) {
                         fprintf(stderr, "Error reading the capacity.\n");
                         fclose(file);
@@ -110,7 +112,6 @@ int main() {
                     break; // Node coordinates section encountered, break and start reading
                 }
             }
-
 
 
             while (fgets(buffer, sizeof(buffer), file) != NULL) {
@@ -145,11 +146,10 @@ int main() {
             } else if (strstr(edgeWeightFormat, "LOWER_DIAG_COL") != NULL) {
                 finalMatrix = readLowerDiagCol(file, numNodes, filePosition); // Read the lower row matrix
             }
-            if(fileType == 3) {
+            if (fileType == 3) {
 
                 //create the demand matrix
                 int *demandMatrix = calloc(numNodes, sizeof(int));
-
 
                 while (fgets(buffer, sizeof(buffer), file) != NULL) {
                     if (strstr(buffer, "DEMAND_SECTION") != NULL) {
@@ -161,151 +161,212 @@ int main() {
                 }
 
                 // Print the demand matrix
+                int numNodes2 = numNodes - 1;
                 printf("Demand Matrix:\n");
-                for (int i = 0; i < numNodes; i++) {
+                for (int i = 0; i < numNodes2; i++) {
                     printf("%d\t", demandMatrix[i]);
                 }
                 printf("Capacity: %d\n", capacity);
                 outputFile = fopen("tourfinal.txt", "w");
                 if (outputFile == NULL) {
                     fprintf(stderr, "Error opening file: tourfinal.txt\n");
+                    free(finalMatrix);
+                    free(demandMatrix);
                     return 1;
                 }
                 free(demandMatrix);
-            }
-            // Print the explicit matrix
-            printf("Explicit Matrix:\n");
-            for (int i = 0; i < numNodes; i++) {
-                for (int j = 0; j < numNodes; j++) {
-                    printf("%.2lf\t", finalMatrix[i][j]);
-                }
-                printf("\n");
-            }
-
-            //write to file tourfinal.txt
-            outputFile = fopen("tourfinal.txt", "w");
-            for (int i = 0; i < numNodes; i++) {
-                for (int j = 0; j < numNodes; j++) {
-                    fprintf(outputFile, "%.2lf\t", finalMatrix[i][j]);
-                }
-                fprintf(outputFile, "\n");
-            }
-            // Free allocated memory
-            for (int i = 0; i < numNodes; i++) {
-                free(finalMatrix[i]);
-            }
-            free(finalMatrix);
-            fclose(file);
-            fclose(outputFile);
-        } else {
-            // Proceed with node coordinates
-            while (fgets(buffer, sizeof(buffer), file) != NULL) {
-                if (strstr(buffer, "NODE_COORD_SECTION") != NULL) {
-                    break; // Node coordinates section encountered, break and start reading
-                }
-                // Print each line while searching for NODE_COORD_SECTION
-                printf("%s", buffer);
-            }
-            Node *nodeMatrix = malloc(numNodes * sizeof(Node)); // Allocate memory for nodes
-
-            for (int i = 0; i < numNodes; i++) {
-                // Read node coordinates
-                if (fscanf(file, "%d %lf %lf", &t, &nodeMatrix[i].x, &nodeMatrix[i].y) != 3) {
-                    fprintf(stderr, "Error reading node coordinates.\n");
-                    fclose(file);
-                    free(nodeMatrix); // Free allocated memory
-                    return 1;
-                }
-            }
-            // Compute distance matrix based on edge weight type
-            double **finalMatrix = (double **) calloc(numNodes, sizeof(double *));
-            for (int i = 0; i < numNodes; i++) {
-                finalMatrix[i] = (double *) calloc(numNodes, sizeof(double));
-            }
-            if (strstr(edgeWeightType, "EUC_2D")) {
-                for (int i = 0; i < numNodes; i++) {
-                    for (int j = 0; j < numNodes; j++) {
-                        finalMatrix[i][j] = euclidean2D(nodeMatrix[i], nodeMatrix[j]);
-                    }
-                }
-            } else if (strstr(edgeWeightType, "EUC_3D")) {
-                for (int i = 0; i < numNodes; i++) {
-                    for (int j = 0; j < numNodes; j++) {
-                        finalMatrix[i][j] = euclidean3D(nodeMatrix[i], nodeMatrix[j]);
-                    }
-                }
-            } else if (strstr(edgeWeightType, "MAX_2D")) {
-                for (int i = 0; i < numNodes; i++) {
-                    for (int j = 0; j < numNodes; j++) {
-                        finalMatrix[i][j] = max2D(nodeMatrix[i], nodeMatrix[j]);
-                    }
-                }
-            } else if (strstr(edgeWeightType, "MAX_3D")) {
-                for (int i = 0; i < numNodes; i++) {
-                    for (int j = 0; j < numNodes; j++) {
-                        finalMatrix[i][j] = max3D(nodeMatrix[i], nodeMatrix[j]);
-                    }
-                }
-            } else if (strstr(edgeWeightType, "MAN_2D")) {
-                for (int i = 0; i < numNodes; i++) {
-                    for (int j = 0; j < numNodes; j++) {
-                        finalMatrix[i][j] = manhattan2D(nodeMatrix[i], nodeMatrix[j]);
-                    }
-                }
-            } else if (strstr(edgeWeightType, "MAN_3D")) {
-                for (int i = 0; i < numNodes; i++) {
-                    for (int j = 0; j < numNodes; j++) {
-                        finalMatrix[i][j] = manhattan3D(nodeMatrix[i], nodeMatrix[j]);
-                    }
-                }
-            } else if (strstr(edgeWeightType, "CEIL_2D")) {
-                for (int i = 0; i < numNodes; i++) {
-                    for (int j = 0; j < numNodes; j++) {
-                        finalMatrix[i][j] = ceil2D(nodeMatrix[i], nodeMatrix[j]);
-                    }
-                }
-            }
-            if(fileType == 3) {
-
-                //create the demand matrix
-                int *demandMatrix = (int *) calloc(numNodes, sizeof(int));
 
 
-                while (fgets(buffer, sizeof(buffer), file) != NULL) {
-                    if (strstr(buffer, "DEMAND_SECTION") != NULL) {
-                        int filePosition = ftell(file);// Get the current file position
-                        demandMatrix = readDemand(file, numNodes, filePosition);
+                //write to file tourfinal.txt
+                outputFile = fopen("tourfinal.txt", "w");
+                for (int i = 0; i < numNodes; i++) {
+                    for (int j = 0; j < numNodes; j++) {
+                        fprintf(outputFile, "%.2lf\t", finalMatrix[i][j]);
+                    }
+                    fprintf(outputFile, "\n");
+                }
 
-                        break; // Node coordinates section encountered, break and start reading
+                double Out[numNodes2][numNodes2];
+                //finalMatrix = makeSymmetrical(finalMatrix, numNodes);
+                for (int i = 0; i < numNodes2; i++) {
+                    for (int j = 0; j < numNodes2; j++) {
+                        Out[i][j] = finalMatrix[i][j];
+                    }
+                }
+                for(int i = 0; i < numNodes2; i++){
+                    for(int j = 0; j < numNodes2; j++){
+                        printf("%.2lf\t", Out[i][j]);
+                    }
+                    printf("\n");
+                }
+
+
+                fclose(file);
+                fclose(outputFile);
+                free(finalMatrix);
+                free(demandMatrix);
+                return 103;
+            } else {
+                // Proceed with node coordinates
+                if(strstr(edgeWeightType,"EXPLICIT")== NULL) {
+                    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+                        if (strstr(buffer, "NODE_COORD_SECTION") != NULL) {
+                            break; // Node coordinates section encountered, break and start reading
+                        }
+                        // Print each line while searching for NODE_COORD_SECTION
+                        printf("%s", buffer);
+                    }
+                    Node *nodeMatrix = malloc(numNodes * sizeof(Node)); // Allocate memory for nodes
+
+                    for (int i = 0; i < numNodes; i++) {
+                        // Read node coordinates
+                        if (fscanf(file, "%d %lf %lf", &t, &nodeMatrix[i].x, &nodeMatrix[i].y) != 3) {
+                            fprintf(stderr, "Error reading node coordinates.\n");
+                            fclose(file);
+                            free(nodeMatrix); // Free allocated memory
+                            return 1;
+                        }
+                    }
+                    // Compute distance matrix based on edge weight type
+                    double **finalMatrix = (double **) calloc(numNodes, sizeof(double *));
+                    for (int i = 0; i < numNodes; i++) {
+                        finalMatrix[i] = (double *) calloc(numNodes, sizeof(double));
+                    }
+                    if (strstr(edgeWeightType, "EUC_2D")) {
+                        for (int i = 0; i < numNodes; i++) {
+                            for (int j = 0; j < numNodes; j++) {
+                                finalMatrix[i][j] = euclidean2D(nodeMatrix[i], nodeMatrix[j]);
+                            }
+                        }
+                    } else if (strstr(edgeWeightType, "EUC_3D")) {
+                        for (int i = 0; i < numNodes; i++) {
+                            for (int j = 0; j < numNodes; j++) {
+                                finalMatrix[i][j] = euclidean3D(nodeMatrix[i], nodeMatrix[j]);
+                            }
+                        }
+                    } else if (strstr(edgeWeightType, "MAX_2D")) {
+                        for (int i = 0; i < numNodes; i++) {
+                            for (int j = 0; j < numNodes; j++) {
+                                finalMatrix[i][j] = max2D(nodeMatrix[i], nodeMatrix[j]);
+                            }
+                        }
+                    } else if (strstr(edgeWeightType, "MAX_3D")) {
+                        for (int i = 0; i < numNodes; i++) {
+                            for (int j = 0; j < numNodes; j++) {
+                                finalMatrix[i][j] = max3D(nodeMatrix[i], nodeMatrix[j]);
+                            }
+                        }
+                    } else if (strstr(edgeWeightType, "MAN_2D")) {
+                        for (int i = 0; i < numNodes; i++) {
+                            for (int j = 0; j < numNodes; j++) {
+                                finalMatrix[i][j] = manhattan2D(nodeMatrix[i], nodeMatrix[j]);
+                            }
+                        }
+                    } else if (strstr(edgeWeightType, "MAN_3D")) {
+                        for (int i = 0; i < numNodes; i++) {
+                            for (int j = 0; j < numNodes; j++) {
+                                finalMatrix[i][j] = manhattan3D(nodeMatrix[i], nodeMatrix[j]);
+                            }
+                        }
+                    } else if (strstr(edgeWeightType, "CEIL_2D")) {
+                        for (int i = 0; i < numNodes; i++) {
+                            for (int j = 0; j < numNodes; j++) {
+                                finalMatrix[i][j] = ceil2D(nodeMatrix[i], nodeMatrix[j]);
+                            }
+                        }
+                    }
+                }else{
+                    if(strstr(edgeWeightFormat, "FULL_MATRIX") == NULL){
+                        finalMatrix = makeSymmetrical(finalMatrix, numNodes);
                     }
                 }
 
-                // Print the demand matrix
-                printf("Demand Matrix:\n");
+                // Print distance matrix
+                printf("Distance Matrix:\n");
                 for (int i = 0; i < numNodes; i++) {
-                    printf("%d\t", demandMatrix[i]);
+                    for (int j = 0; j < numNodes; j++) {
+                        printf("%.2lf\t", finalMatrix[i][j]);
+                    }
+                    printf("\n");
                 }
-                printf("Capacity: %d\n", capacity);
+
+                //write to file tourfinal.txt
                 outputFile = fopen("tourfinal.txt", "w");
                 if (outputFile == NULL) {
                     fprintf(stderr, "Error opening file: tourfinal.txt\n");
+                    free(finalMatrix);
                     return 1;
                 }
+
+                if(strstr(edgeWeightFormat, "FULL_MATRIX") != NULL){
+                    finalMatrix = makeSymmetrical(finalMatrix, numNodes);
+                }
+                for (int i = 0; i < numNodes; i++) {
+                    for (int j = 0; j < numNodes; j++) {
+                        fprintf(outputFile, "%.2lf\t", finalMatrix[i][j]);
+                    }
+                    fprintf(outputFile, "\n");
+                }
+
+                // Free allocated memory
+                for (int i = 0; i < numNodes; i++) {
+
+                    free(finalMatrix[i]);
+                }
+
+                free(finalMatrix);
+                // Close the file
+
+                fclose(file);
+                fclose(outputFile);
+
+                return 101;
+
             }
+
+        } else {
+            // Read the file and extract necessary information
+            while (fgets(buffer, sizeof(buffer), file) != NULL) {
+                if (strstr(buffer, "DIMENSION") != NULL) {
+                    // Extract the number of nodes from the "DIMENSION" line
+                    if (sscanf(buffer, "DIMENSION : %d", &numNodes) != 1) {
+                        fprintf(stderr, "Error reading the number of nodes.\n");
+                        fclose(file);
+                        return 1;
+                    }
+                    continue;
+                } else if (strstr(buffer, "EDGE_WEIGHT_SECTION") != NULL) {
+                    break; // Node coordinates section encountered, break and start reading
+                }
+            }
+
+
+            double **finalMatrix = calloc(numNodes, sizeof(double *));
+            for (int i = 0; i < numNodes; i++) {
+                finalMatrix[i] = (double *) calloc(numNodes, sizeof(double));
+            }
+            long int filePosition = ftell(file);// Get the current file position
+            filePosition = filePosition;
+            finalMatrix = readFullMatrix(file, numNodes, filePosition); // Read the full explicit matrix
+
             // Print distance matrix
             printf("Distance Matrix:\n");
+
             for (int i = 0; i < numNodes; i++) {
                 for (int j = 0; j < numNodes; j++) {
                     printf("%.2lf\t", finalMatrix[i][j]);
                 }
                 printf("\n");
             }
+
 
             //write to file tourfinal.txt
             outputFile = fopen("tourfinal.txt", "w");
             if (outputFile == NULL) {
                 fprintf(stderr, "Error opening file: tourfinal.txt\n");
+                free(finalMatrix);
                 return 1;
+
             }
             for (int i = 0; i < numNodes; i++) {
                 for (int j = 0; j < numNodes; j++) {
@@ -314,84 +375,25 @@ int main() {
                 fprintf(outputFile, "\n");
             }
 
-            // Free allocated memory
+
+            /*// Free allocated memory
             for (int i = 0; i < numNodes; i++) {
 
                 free(finalMatrix[i]);
-            }
-            free(nodeMatrix);
-            free(finalMatrix);
-            // Close the file
+            }*/
 
-            fclose(file);
+            for (int i = 0; i < numNodes; i++) {
+                for (int j = 0; j < numNodes; j++) {
+                    printf("%.2lf\t", finalMatrix[i][j]);
+                }
+                printf("\n");
+            }
+
             fclose(outputFile);
 
-            return 101;
-
+            // Close the file
+            fclose(file);
+            return 102;
         }
-
-    } else{
-        // Read the file and extract necessary information
-        while (fgets(buffer, sizeof(buffer), file) != NULL) {
-            if (strstr(buffer, "DIMENSION") != NULL) {
-                // Extract the number of nodes from the "DIMENSION" line
-                if (sscanf(buffer, "DIMENSION : %d", &numNodes) != 1) {
-                    fprintf(stderr, "Error reading the number of nodes.\n");
-                    fclose(file);
-                    return 1;
-                }
-                continue;
-            } else if (strstr(buffer, "EDGE_WEIGHT_SECTION") != NULL) {
-                break; // Node coordinates section encountered, break and start reading
-            }
-        }
-
-
-        double **finalMatrix = calloc(numNodes, sizeof(double *));
-        for (int i = 0; i < numNodes; i++) {
-            finalMatrix[i] = (double *) calloc(numNodes, sizeof(double));
-        }
-        long int filePosition = ftell(file);// Get the current file position
-        filePosition = filePosition;
-        finalMatrix = readFullMatrix(file, numNodes, filePosition); // Read the full explicit matrix
-
-        // Print distance matrix
-        printf("Distance Matrix:\n");
-
-        for (int i = 0; i < numNodes; i++) {
-            for (int j = 0; j < numNodes; j++) {
-                printf("%.2lf\t", finalMatrix[i][j]);
-            }
-            printf("\n");
-        }
-
-
-        //write to file tourfinal.txt
-        outputFile = fopen("tourfinal.txt", "w");
-        if (outputFile == NULL) {
-            fprintf(stderr, "Error opening file: tourfinal.txt\n");
-            free(finalMatrix);
-            return 1;
-
-        }
-        for (int i = 0; i < numNodes; i++) {
-            for (int j = 0; j < numNodes; j++) {
-                fprintf(outputFile, "%.2lf\t", finalMatrix[i][j]);
-            }
-            fprintf(outputFile, "\n");
-        }
-
-        // Free allocated memory
-        for (int i = 0; i < numNodes; i++) {
-
-            free(finalMatrix[i]);
-        }
-
-        free(finalMatrix);
-        fclose(outputFile);
-
-        // Close the file
-        fclose(file);
-        return 102;
     }
 }

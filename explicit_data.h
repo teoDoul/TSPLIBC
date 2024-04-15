@@ -12,5 +12,6 @@ double **readLowerCol(FILE *file, int numNodes,long int filePosition);
 double **readUpperDiagCol(FILE *file, int numNodes,long int filePosition);
 double **readLowerDiagCol(FILE *file, int numNodes,long int filePosition);
 int *readDemand(FILE *file, int numNodes, long int filePosition);
+double **makeSymmetrical(double **matrix, int numNodes);
 
 #endif //UNTITLED_EXPLICIT_DATA_H

@@ -178,8 +178,8 @@ double **readLowerDiagCol(FILE *file, int numNodes, long int filePosition) {
             matrix[i][j] = t;
         }
     }
-
     return matrix;
+
 }
 
 //read demand matrix
@@ -197,4 +197,13 @@ int *readDemand(FILE *file, int numNodes, long int filePosition) {
     }
 
     return demand;
+}
+
+double **makeSymmetrical(double **matrix, int numNodes) {
+    for(int i = 0; i < numNodes; i++) {
+        for(int j = 0; j < i; j++) {
+            matrix[j][i] = matrix[i][j];
+        }
+    }
+    return matrix;
 }
